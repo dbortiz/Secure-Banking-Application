@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Sign Up Page</title>
+    </head>
+    <body>
+        <h1>Sign Up!</h1>
+        <%= errorMessage %>
+        <form action='/signup' method='post'>
+            <input type='text' name='username' placeholder='Enter username' required />
+            <input type='password' name='password' placeholder='Enter password' required />
+            <br></br>
+            <input type='text' name='firstName' placeholder='Enter first name' required />
+            <input type='text' name='lastName' placeholder='Enter last name' required />
+            <br></br>
+            <input type='text' name='address' placeholder='Enter address' required />
+            <input type='text' name='city' placeholder='Enter city' required />
+            <br></br>
+            <input type='text' name='state' placeholder='Enter state' required />
+            <input type='text' name='zip' placeholder='Enter zip code' required />
+            <br></br>
+            <input type='submit' value='Sign Up' />
+        </form>
+
+        <br></br>
+        <a href='/'>Return to Login</a>
+    </body>
+</html>
