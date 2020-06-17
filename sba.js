@@ -112,9 +112,49 @@ Sign Up Page
 */
 app.get('/signup', (req, res) => {
     console.log('Sign up page sent to user.');
-    res.render('signup');
-})
+    let errMessage = '';
+    res.render('signup', {errorMessage: errMessage});
+});
 
+/*
+Sign Up POST Method
+*/
+app.post('/signup', (req, res) => {
+    // NOTE: Add filter
+    let username = req.body.username;
+
+    let q = 'USE Bank; Select 1 FROM BankUsers WHERE `username`=?;'
+    mysqlConn.query(q, [username], (err, qResult) => {
+        if(err) throw err;
+
+        console.log(qResult[1].length);
+        if(qResult[1].length === 1){
+            let errMessage = 'Username is already in use. Please select another!';
+
+            res.render('signup', {errorMessage: errMessage});
+        }else{
+            let capFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+            // NOTE: Add filters
+            let password = req.body.password;
+            let firstName = capFirstLetter(req.body.firstName);
+            let lastName = capFirstLetter(req.body.lastName);
+            let address = req.body.address.toUpperCase();
+            let city = req.body.city.toUpperCase();
+            let state = req.body.state.toUpperCase();
+            let zip = req.body.zip;
+
+            let q2 = 'USE Bank; INSERT INTO BankUsers VALUES(?,?,?,?,?,?,?,?)';
+            let qValues = [username, password, firstName, lastName, address, city, state, zip];
+
+            mysqlConn.query(q2, qValues, (err, qResult) => {
+                console.log('User created!');
+
+                res.render('usercreated', {username: username, firstName: firstName, lastName: lastName, address: address, city: city, state: state, zip: zip});
+            });
+        }
+    });
+
+});
 
 app.listen(3000, () => {
     console.log('Listening on port 3000!');
