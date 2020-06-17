@@ -6,12 +6,16 @@
     <body>
         <h1>Login!</h1>
         
-        <!-- <form> -->
-        <input type='text' name='username' placeholder='Enter Username' required />
+        <!-- Form to receive login info -->
+        <form action='/login' method='post'>
+            <input type='text' name='username' placeholder='Enter Username' required />
+            <br></br>
+            <input type='password' name='password' placeholder='Enter Password' required />
+            <br></br>
+            <input type='submit' value='Login' />
+        </form>
+        <%= errorMessage %>
         <br></br>
-        <input type='password' name='password' placeholder='Enter Password' required />
-        <br></br>
-        <input type='submit' value='Login' />
-        <!-- </form> -->
+        <a href='/signup'>Need an account? Sign up!</a>
     </body>
 </html>
