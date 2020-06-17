@@ -75,6 +75,7 @@ app.get('/', (req, res) => {
     }
 });
 
+
 /*
 Login POST Method
 */
@@ -154,6 +155,27 @@ app.post('/signup', (req, res) => {
         }
     });
 
+});
+
+/*
+Logout user and kill valid session.
+*/
+app.get('/logout', (req, res) => {
+    let errMessage = '';
+
+    if(authenticateUser(req.session)){
+        let username = req.session.activeUser.username;
+        
+        req.session.reset();
+
+        console.log(username, 'has logged out.');
+
+        res.render('login', {errorMessage: errMessage});
+    }else{
+        console.log('Failed attempt to reach /logout route, redirecting user to login page.');
+
+        res.render('login', {errorMessage: errMessage});
+    }
 });
 
 app.listen(3000, () => {
