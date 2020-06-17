@@ -178,6 +178,13 @@ app.get('/logout', (req, res) => {
     }
 });
 
+
+app.use((req, res) => {
+    console.log('User attempted to reach an inexistent page.');
+    
+    res.status(404).render('pagenotfound');
+});
+
 app.listen(3000, () => {
     console.log('Listening on port 3000!');
 });
