@@ -220,6 +220,85 @@ app.post('/deposit', (req, res) => {
 });
 
 /*
+To Withdraw: Checks for any accounts and sends accounts
+to deposit page.
+*/
+app.get('/toWithdraw', (req, res) => {
+    let username = req.session.activeUser.username;
+
+    let q = 'USE Bank; SELECT acc_name FROM UserAccount WHERE `acc_username`=?';
+    
+    mysqlConn.query(q, [username], (err, qResult) => {
+        if(err) throw err;
+        
+        if(qResult[1].length > 0){
+            let accounts = [];
+            let errMessage = '';
+            qResult[1].forEach((account) => {
+                accounts.push({'account': account['acc_name']});
+            });
+
+            res.render('withdraw', {errorMessage: errMessage, accounts: accounts});
+            
+        }else{
+            let errMessage = 'You have no accounts to make a withdrawal! Please create an account!';
+
+            console.log('User attempted to withdraw with no available accounts.');
+
+            res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
+        }
+    });
+});
+
+/*
+Withdraw POST Method
+*/
+app.post('/withdraw', (req, res) => {
+    let username = req.session.activeUser.username;
+    let accountName = req.body.account;
+    let amount = Number(req.body.amount);
+
+    let q = 'USE Bank; SELECT acc_amount FROM UserAccount WHERE `acc_username`=? AND `acc_name`=?';
+    let qValues = [username, accountName];
+
+    mysqlConn.query(q, qValues, (err, qResult) => {
+        if(err) throw err;
+
+        let currentAmount = Number(qResult[1][0]['acc_amount']);
+
+        if(currentAmount < amount){
+            let q2 = 'USE Bank; SELECT acc_name FROM UserAccount WHERE `acc_username`=?';
+
+            mysqlConn.query(q2, [username], (err2, qResult2) => {
+                if(err2) throw err2;
+
+                let errMessage = 'Invalid amount requested! Please enter a valid amount.';
+                let accounts = [];
+
+                qResult2[1].forEach((account) => {
+                    accounts.push({'account': account['acc_name']});
+                });
+
+                console.log('User attempted to withdraw more than available.');
+
+                res.render('withdraw', {errorMessage: errMessage, accounts: accounts});       
+            });
+        }else{
+            let newAmount = (currentAmount - amount).toFixed(2);
+
+            let q2 = 'USE Bank; UPDATE UserAccount SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
+            let qValues2 = [newAmount, username, accountName];
+
+            mysqlConn.query(q2, qValues2, (err2) => {
+                if(err2) throw err2;
+
+                res.render('accountupdated', {transactionType: 'Withdrawal', accountName: accountName, accountAmount: newAmount});
+            });
+        }
+    });
+});
+
+/*
 Logout user and kill valid session.
 */
 app.get('/logout', (req, res) => {
