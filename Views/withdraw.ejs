@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Withdraw</title>
+    </head>
+    <body>
+        <h1>Withdraw!</h1>
+        <%= errorMessage %>
+        <h3>
+            <label for='account'>Choose an account:</label>
+        </h3>
+        
+        <form action='/withdraw' method='post'>
+            <select id='account' name='account'>
+                <% accounts.forEach(function(acc){ %>
+                    <option> <%= acc.account %> </option>
+                <% }); %>
+            </select>
+            <h3>
+                <label for='amount'>Enter an amount:</label>
+            </h3>
+            <input type='number' id='amount' name='amount' placeholder='ex. 1.00' step='0.01' min='0.01' required/>
+            <br></br>
+            <input type='submit' value='Withdraw'/>
+        </form>
+        <a href='/'>Return to Home</a>
+    </body>
+</html>
