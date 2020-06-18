@@ -64,8 +64,11 @@ Login Home Page
 */
 app.get('/', (req, res) => {
     if(authenticateUser(req.session)){
+        let errMessage = '';
+
         console.log('Valid session: redirecting user to home page.');
-        res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName});
+        
+        res.render('home', {errorMessage: errMessage, firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName});
     }else{
         let errMessage = '';
 
@@ -92,12 +95,13 @@ app.post('/login', (req, res) => {
         if(qResult[1].length === 1){
             let fName = qResult[1][0]['fName'];
             let lName = qResult[1][0]['lName'];
-            
+            let errMessage = '';
+
             console.log('Successful login by user:', fName, lName);
 
             req.session.activeUser = {firstName: fName, lastName:lName, username: username, password: password};
             
-            res.render('home', {firstName: fName, lastName: lName});
+            res.render('home', {errorMessage: errMessage, firstName: fName, lastName: lName});
         }else{
             let errMessage = 'Your credentials are invalid!';
             
@@ -158,6 +162,64 @@ app.post('/signup', (req, res) => {
 });
 
 /*
+To Deposit: Checks for any accounts and sends accounts
+to deposit page.
+*/
+app.get('/toDeposit', (req, res) => {
+    let username = req.session.activeUser.username;
+
+    let q = 'USE Bank; SELECT acc_name FROM UserAccount WHERE `acc_username`=?';
+    
+    mysqlConn.query(q, [username], (err, qResult) => {
+        if(err) throw err;
+        
+        if(qResult[1].length > 0){
+            let accounts = [];
+            qResult[1].forEach((account) => {
+                accounts.push({'account': account['acc_name']});
+            });
+
+            res.render('deposit', {accounts: accounts});
+            
+        }else{
+            let errMessage = 'You have no accounts to make a deposit! Please create an account!';
+
+            console.log('User attempted to deposit with no available accounts.');
+
+            res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
+        }
+    });
+});
+
+/*
+Deposit POST Method
+*/
+app.post('/deposit', (req, res) => {
+    let username = req.session.activeUser.username;
+    let accountName = req.body.account;
+    let amount = Number(req.body.amount);
+
+    let q = 'USE Bank; SELECT acc_amount FROM UserAccount WHERE `acc_username`=? AND `acc_name`=?';
+    let qValues = [username, accountName];
+
+    mysqlConn.query(q, qValues, (err, qResult) => {
+        if(err) throw err;
+
+        let currentAmount = Number(qResult[1][0]['acc_amount']);
+        let newAmount = (currentAmount + amount).toFixed(2);
+
+        let q2 = 'USE Bank; UPDATE UserAccount SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
+        let qValues2 = [newAmount, username, accountName];
+
+        mysqlConn.query(q2, qValues2, (err2) => {
+            if(err2) throw err2;
+
+            res.render('accountupdated', {transactionType: 'Deposit', accountName: accountName, accountAmount: newAmount});
+        });
+    });
+});
+
+/*
 Logout user and kill valid session.
 */
 app.get('/logout', (req, res) => {
@@ -178,9 +240,12 @@ app.get('/logout', (req, res) => {
     }
 });
 
-
+/*
+404: Page Not Found
+*/
 app.use((req, res) => {
-    console.log('User attempted to reach an inexistent page.');
+    // NOTE: logging executes every time server is contacted, fix issue
+    // console.log('User attempted to reach an inexistent page.');
     
     res.status(404).render('pagenotfound');
 });
