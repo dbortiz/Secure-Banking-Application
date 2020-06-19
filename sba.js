@@ -328,6 +328,9 @@ app.get('/toTransfer', (req, res) => {
     });
 });
 
+/*
+Transfer POST Method
+*/
 app.post('/transfer', (req, res) => {
     let username = req.session.activeUser.username;
     let fromAccount = req.body.fromAccount;
@@ -395,6 +398,30 @@ app.post('/transfer', (req, res) => {
                     });
                 }
             });
+        }
+    });
+});
+
+app.get('/toViewAccounts', (req, res) => {
+    let username = req.session.activeUser.username;
+
+    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?;';
+
+    mysqlConn.query(q, [username], (err, qResult) => {
+        if(err) throw err;
+
+        if(qResult[1].length > 0){
+            qResult[1].forEach((account) => {
+                accounts.push({'account': account['acc_name']});
+            });
+
+            res.render('viewaccounts', {accounts: accounts});
+        }else{
+            let errMessage = 'You do not have any accounts to view! Please create some!';
+
+            console.log('User attempted to view accounts without having any.');
+
+            res.render('home', {errorMessage: errMessage, firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName});
         }
     });
 });
