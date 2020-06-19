@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Transfer</title>
+    </head>
+    <body>
+        <h1>Transfer!</h1>
+        
+        <%= errorMessage %>
+
+        <form action='/transfer' method='post'>
+            <h3>
+                <label for='fromAccount'>Transfer From:</label>
+            </h3>
+            <select id='fromAccount' name='fromAccount'>
+                <% fromAccounts.forEach(function(acc){ %>
+                    <option> <%= acc.account %> </option>
+                <% }); %>
+            </select>
+
+            <h3>
+                <label for='amount'>Enter an amount:</label>
+            </h3>
+            <input type='number' id='amount' name='amount' placeholder='ex. 1.00' step='0.01' min='0.01' required/>
+            
+            <h3>
+                <label for='toAccount'>Transfer To:</label>
+            </h3>
+            <select id='toAccount' name='toAccount'>
+                <% toAccounts.forEach(function(acc){ %>
+                    <option> <%= acc.account %> </option>
+                <% }); %>
+            </select>
+            
+            <br></br>
+            <input type='submit' value='Transfer'/>
+        </form>
+
+        <a href='/'>Return to Home</a>
+    </body>
+</html>
