@@ -168,7 +168,7 @@ to deposit page.
 app.get('/toDeposit', (req, res) => {
     let username = req.session.activeUser.username;
 
-    let q = 'USE Bank; SELECT acc_name FROM UserAccount WHERE `acc_username`=?';
+    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
     
     mysqlConn.query(q, [username], (err, qResult) => {
         if(err) throw err;
@@ -199,7 +199,7 @@ app.post('/deposit', (req, res) => {
     let accountName = req.body.account;
     let amount = Number(req.body.amount);
 
-    let q = 'USE Bank; SELECT acc_amount FROM UserAccount WHERE `acc_username`=? AND `acc_name`=?';
+    let q = 'USE Bank; SELECT acc_amount FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?';
     let qValues = [username, accountName];
 
     mysqlConn.query(q, qValues, (err, qResult) => {
@@ -208,7 +208,7 @@ app.post('/deposit', (req, res) => {
         let currentAmount = Number(qResult[1][0]['acc_amount']);
         let newAmount = (currentAmount + amount).toFixed(2);
 
-        let q2 = 'USE Bank; UPDATE UserAccount SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
+        let q2 = 'USE Bank; UPDATE UserAccounts SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
         let qValues2 = [newAmount, username, accountName];
 
         mysqlConn.query(q2, qValues2, (err2) => {
@@ -226,7 +226,7 @@ to deposit page.
 app.get('/toWithdraw', (req, res) => {
     let username = req.session.activeUser.username;
 
-    let q = 'USE Bank; SELECT acc_name FROM UserAccount WHERE `acc_username`=?';
+    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
     
     mysqlConn.query(q, [username], (err, qResult) => {
         if(err) throw err;
@@ -258,7 +258,7 @@ app.post('/withdraw', (req, res) => {
     let accountName = req.body.account;
     let amount = Number(req.body.amount);
 
-    let q = 'USE Bank; SELECT acc_amount FROM UserAccount WHERE `acc_username`=? AND `acc_name`=?';
+    let q = 'USE Bank; SELECT acc_amount FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?';
     let qValues = [username, accountName];
 
     mysqlConn.query(q, qValues, (err, qResult) => {
@@ -267,7 +267,7 @@ app.post('/withdraw', (req, res) => {
         let currentAmount = Number(qResult[1][0]['acc_amount']);
 
         if(currentAmount < amount){
-            let q2 = 'USE Bank; SELECT acc_name FROM UserAccount WHERE `acc_username`=?';
+            let q2 = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
 
             mysqlConn.query(q2, [username], (err2, qResult2) => {
                 if(err2) throw err2;
@@ -286,7 +286,7 @@ app.post('/withdraw', (req, res) => {
         }else{
             let newAmount = (currentAmount - amount).toFixed(2);
 
-            let q2 = 'USE Bank; UPDATE UserAccount SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
+            let q2 = 'USE Bank; UPDATE UserAccounts SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
             let qValues2 = [newAmount, username, accountName];
 
             mysqlConn.query(q2, qValues2, (err2) => {
@@ -297,6 +297,108 @@ app.post('/withdraw', (req, res) => {
         }
     });
 });
+
+/*
+toTransfer: checks to see if the user has enough accounts to make transfers between accounts
+*/
+app.get('/toTransfer', (req, res) => {
+    let username = req.session.activeUser.username;
+
+    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
+
+    mysqlConn.query(q, [username], (err, qResult) => {
+        if(err) throw err;
+
+        if(qResult[1].length > 1){
+            let accounts = [];
+            let errMessage = '';
+
+            qResult[1].forEach((account) => {
+                accounts.push({'account': account['acc_name']});
+            });
+
+            res.render('transfer', {errorMessage: errMessage, fromAccounts: accounts, toAccounts: accounts});
+        }else{
+            let errMessage = 'You do not have enough accounts to make a transfer! Please create some!';
+
+            console.log('User attempted to make a transfer without enough accounts.');
+
+            res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
+        }
+    });
+});
+
+app.post('/transfer', (req, res) => {
+    let username = req.session.activeUser.username;
+    let fromAccount = req.body.fromAccount;
+    let amount = Number(req.body.amount);
+    let toAccount = req.body.toAccount;
+
+    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
+
+    mysqlConn.query(q, [username], (err, qResult) => {
+        if(err) throw err;
+
+        let accounts = [];
+
+        qResult[1].forEach((account) => {
+            accounts.push({'account': account['acc_name']});
+        });
+
+        if(fromAccount === toAccount){
+            let errMessage = 'You can not transfer from the same account transferring to! Please make sure the accounts are different.';
+
+            console.log('User attempted to transfer to account transferring from.');
+
+            res.render('transfer', {errorMessage: errMessage, fromAccounts: accounts, toAccounts: accounts});
+        }else{
+            let q2 = 'USE Bank; SELECT acc_amount FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?';
+            let q2Values = [username, fromAccount];
+
+            mysqlConn.query(q2, q2Values, (err2, q2Result) => {
+                if(err2) throw err2;
+
+                let currentFromAmount = Number(q2Result[1][0]['acc_amount']);
+
+                if(currentFromAmount < amount){
+                    let errMessage = 'Invalid amount requested to transfer! Please enter a valid amount.';
+
+                    console.log('User attempted to transfer invalid amount from account.');
+
+                    res.render('transfer', {errorMessage: errMessage, fromAccounts: accounts, toAccounts: accounts});
+                }else{
+                    let newFromAmount = Number(currentFromAmount - amount).toFixed(2);
+                    let q3 = 'USE Bank; UPDATE UserAccounts SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
+                    let q3Values = [newFromAmount, username, fromAccount];
+
+                    mysqlConn.query(q3, q3Values, (err3) => {
+                        if(err3) throw err3;
+
+                        let q4 = 'USE Bank; SELECT acc_amount FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?';
+                        let q4Values = [username, toAccount];
+
+                        mysqlConn.query(q4, q4Values, (err4, q4Result) => {
+                            if(err4) throw err4;
+
+                            let currentToAmount = Number(q4Result[1][0]['acc_amount']);
+                            let newToAmount = Number(currentToAmount + amount).toFixed(2);
+
+                            let q5 = 'USE Bank; UPDATE UserAccounts SET `acc_amount`=? WHERE `acc_username`=? AND `acc_name`=?';
+                            let q5Values = [newToAmount, username, toAccount];
+
+                            mysqlConn.query(q5, q5Values, (err5) => {
+                                if(err5) throw err5;
+
+                                res.render('accountupdated', {transactionType: 'Transfer', accountName: toAccount, accountAmount: newToAmount});
+                            });
+                        });
+                    });
+                }
+            });
+        }
+    });
+});
+
 
 /*
 Logout user and kill valid session.
