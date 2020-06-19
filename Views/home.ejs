@@ -5,9 +5,10 @@
     </head>
     <body>
         <h1>Welcome <%= firstName %> <%= lastName %>!</h1>
-        <a href=''>Deposit</a><br></br>
-        <a href=''>Withdraw</a><br></br>
-        <a href=''>Transfer</a><br></br>
+        <%= errorMessage %><br></br>
+        <a href='/toDeposit'>Deposit</a><br></br>
+        <a href='/toWithdraw'>Withdraw</a><br></br>
+        <a href='/toTransfer'>Transfer</a><br></br>
         <a href=''>View Accounts</a><br></br>
         <a href=''>Create Account</a><br></br>
         <br></br>
