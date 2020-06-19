@@ -411,11 +411,23 @@ app.get('/toViewAccounts', (req, res) => {
         if(err) throw err;
 
         if(qResult[1].length > 0){
+            let accounts = [];
+
             qResult[1].forEach((account) => {
                 accounts.push({'account': account['acc_name']});
             });
 
-            res.render('viewaccounts', {accounts: accounts});
+            let q2 = 'USE Bank; SELECT acc_amount, acc_type FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?;';
+            let q2Values = [username, qResult[1][0]['acc_name']];
+
+            mysqlConn.query(q2, q2Values, (err2, q2Result) => {
+                if(err2) throw err2;
+
+                let amount = Number(q2Result[1][0]['acc_amount']).toFixed(2);
+                let type = q2Result[1][0]['acc_type'];
+
+                res.render('viewaccounts', {accounts: accounts, type: type, amount: amount});
+            });
         }else{
             let errMessage = 'You do not have any accounts to view! Please create some!';
 
@@ -424,6 +436,37 @@ app.get('/toViewAccounts', (req, res) => {
             res.render('home', {errorMessage: errMessage, firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName});
         }
     });
+});
+
+/*
+viewAccounts POST Method
+*/
+app.post('/viewAccounts', (req, res) => {
+    let username = req.session.activeUser.username;
+    let account = req.body.account;
+
+    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?;';
+    mysqlConn.query(q, [username], (err, qResult) => {
+        if(err) throw err;
+
+        let accounts = [];
+        qResult[1].forEach((account) => {
+            accounts.push({'account': account['acc_name']});
+        });
+
+        let q2 = 'USE Bank; SELECT acc_amount, acc_type FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?;';
+        let q2Values = [username, account];
+
+        mysqlConn.query(q2, q2Values, (err2, q2Result) => {
+            if(err2) throw err2;
+
+            let amount = Number(q2Result[1][0]['acc_amount']).toFixed(2);
+            let type = q2Result[1][0]['acc_type'];
+
+            res.render('viewaccounts', {accounts: accounts, amount: amount, type: type});
+        });
+    });
+    
 });
 
 
