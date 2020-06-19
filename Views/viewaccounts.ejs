@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>View Accounts</title>
+    </head>
+    <body>
+        <h1>View Accounts!</h1>
+
+        <form action='/viewAccounts' method='post'>
+            <h3>
+                <label for='account'>Please choose an account:</label>
+            </h3>
+            <select id='account' name='account'>
+                <% accounts.forEach(function(acc) { %>
+                    <option> <%= acc.account %> </option>
+                <% }); %>
+            </select>
+            <input type='submit' value='View Account' />
+        </form>
+        <h3>Account Type: <%= type %></h3>
+        <h3>Account Balance: $<%= amount %></h3>
+
+        <a href='/'>Return to Home</a>
+    </body>
+</html>
