@@ -471,6 +471,48 @@ app.post('/viewAccounts', (req, res) => {
 
 
 /*
+toCreateAccount: send create account page.
+*/
+app.get('/toCreateAccount', (req, res) => {
+    let errMessage = '';
+
+    res.render('createaccount', {errorMessage: errMessage});
+});
+
+/*
+createAccount POST Method
+*/
+app.post('/createAccount', (req, res) => {
+    let username = req.session.activeUser.username;
+    let accountName = req.body.accountName;
+
+    let q = 'USE Bank; SELECT 1 FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?;';
+    let qValues = [username, accountName];
+
+    mysqlConn.query(q, qValues, (err, qResult) => {
+        if(err) throw err;
+        
+        if(qResult[1].length === 1){
+            let errMessage = 'You already have an account with that name! Please select a different name.';
+
+            res.render('createaccount', {errorMessage: errMessage});
+        }else{
+            let accountType = req.body.accountType;
+            let accountAmount = Number(req.body.accountAmount).toFixed(2);
+
+            let q2 = 'USE Bank; INSERT INTO UserAccounts VALUES(?,?,?,?);';
+            let q2Values = [accountName, accountType, accountAmount, username];
+
+            mysqlConn.query(q2, q2Values, (err2) => {
+                if(err2) throw err2;
+
+                res.render('accountupdated', {transactionType: 'Account Creation', accountName: accountName, accountAmount: accountAmount});
+            });
+        }
+    });
+});
+
+/*
 Logout user and kill valid session.
 */
 app.get('/logout', (req, res) => {
