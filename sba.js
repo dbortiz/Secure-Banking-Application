@@ -166,29 +166,33 @@ To Deposit: Checks for any accounts and sends accounts
 to deposit page.
 */
 app.get('/toDeposit', (req, res) => {
-    let username = req.session.activeUser.username;
+    if(authenticateUser(req.session)){
+        let username = req.session.activeUser.username;
 
-    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
-    
-    mysqlConn.query(q, [username], (err, qResult) => {
-        if(err) throw err;
+        let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
         
-        if(qResult[1].length > 0){
-            let accounts = [];
-            qResult[1].forEach((account) => {
-                accounts.push({'account': account['acc_name']});
-            });
-
-            res.render('deposit', {accounts: accounts});
+        mysqlConn.query(q, [username], (err, qResult) => {
+            if(err) throw err;
             
-        }else{
-            let errMessage = 'You have no accounts to make a deposit! Please create an account!';
+            if(qResult[1].length > 0){
+                let accounts = [];
+                qResult[1].forEach((account) => {
+                    accounts.push({'account': account['acc_name']});
+                });
 
-            console.log('User attempted to deposit with no available accounts.');
+                res.render('deposit', {accounts: accounts});
+                
+            }else{
+                let errMessage = 'You have no accounts to make a deposit! Please create an account!';
 
-            res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
-        }
-    });
+                console.log('User attempted to deposit with no available accounts.');
+
+                res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
+            }
+        });
+    }else{
+        res.redirect('/');
+    }
 });
 
 /*
@@ -224,30 +228,34 @@ To Withdraw: Checks for any accounts and sends accounts
 to deposit page.
 */
 app.get('/toWithdraw', (req, res) => {
-    let username = req.session.activeUser.username;
+    if(authenticateUser(req.session)){
+        let username = req.session.activeUser.username;
 
-    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
-    
-    mysqlConn.query(q, [username], (err, qResult) => {
-        if(err) throw err;
+        let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
         
-        if(qResult[1].length > 0){
-            let accounts = [];
-            let errMessage = '';
-            qResult[1].forEach((account) => {
-                accounts.push({'account': account['acc_name']});
-            });
-
-            res.render('withdraw', {errorMessage: errMessage, accounts: accounts});
+        mysqlConn.query(q, [username], (err, qResult) => {
+            if(err) throw err;
             
-        }else{
-            let errMessage = 'You have no accounts to make a withdrawal! Please create an account!';
+            if(qResult[1].length > 0){
+                let accounts = [];
+                let errMessage = '';
+                qResult[1].forEach((account) => {
+                    accounts.push({'account': account['acc_name']});
+                });
 
-            console.log('User attempted to withdraw with no available accounts.');
+                res.render('withdraw', {errorMessage: errMessage, accounts: accounts});
+                
+            }else{
+                let errMessage = 'You have no accounts to make a withdrawal! Please create an account!';
 
-            res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
-        }
-    });
+                console.log('User attempted to withdraw with no available accounts.');
+
+                res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
+            }
+        });
+    }else{
+        res.redirect('/');
+    }
 });
 
 /*
@@ -302,30 +310,34 @@ app.post('/withdraw', (req, res) => {
 toTransfer: checks to see if the user has enough accounts to make transfers between accounts
 */
 app.get('/toTransfer', (req, res) => {
-    let username = req.session.activeUser.username;
+    if(authenticateUser(req.session)){
+        let username = req.session.activeUser.username;
 
-    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
+        let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
 
-    mysqlConn.query(q, [username], (err, qResult) => {
-        if(err) throw err;
+        mysqlConn.query(q, [username], (err, qResult) => {
+            if(err) throw err;
 
-        if(qResult[1].length > 1){
-            let accounts = [];
-            let errMessage = '';
+            if(qResult[1].length > 1){
+                let accounts = [];
+                let errMessage = '';
 
-            qResult[1].forEach((account) => {
-                accounts.push({'account': account['acc_name']});
-            });
+                qResult[1].forEach((account) => {
+                    accounts.push({'account': account['acc_name']});
+                });
 
-            res.render('transfer', {errorMessage: errMessage, fromAccounts: accounts, toAccounts: accounts});
-        }else{
-            let errMessage = 'You do not have enough accounts to make a transfer! Please create some!';
+                res.render('transfer', {errorMessage: errMessage, fromAccounts: accounts, toAccounts: accounts});
+            }else{
+                let errMessage = 'You do not have enough accounts to make a transfer! Please create some!';
 
-            console.log('User attempted to make a transfer without enough accounts.');
+                console.log('User attempted to make a transfer without enough accounts.');
 
-            res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
-        }
-    });
+                res.render('home', {firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName, errorMessage: errMessage});
+            }
+        });
+    }else{
+        res.redirect('/');
+    }
 });
 
 /*
@@ -403,39 +415,43 @@ app.post('/transfer', (req, res) => {
 });
 
 app.get('/toViewAccounts', (req, res) => {
-    let username = req.session.activeUser.username;
+    if(authenticateUser(req.session)){
+        let username = req.session.activeUser.username;
 
-    let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?;';
+        let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?;';
 
-    mysqlConn.query(q, [username], (err, qResult) => {
-        if(err) throw err;
+        mysqlConn.query(q, [username], (err, qResult) => {
+            if(err) throw err;
 
-        if(qResult[1].length > 0){
-            let accounts = [];
+            if(qResult[1].length > 0){
+                let accounts = [];
 
-            qResult[1].forEach((account) => {
-                accounts.push({'account': account['acc_name']});
-            });
+                qResult[1].forEach((account) => {
+                    accounts.push({'account': account['acc_name']});
+                });
 
-            let q2 = 'USE Bank; SELECT acc_amount, acc_type FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?;';
-            let q2Values = [username, qResult[1][0]['acc_name']];
+                let q2 = 'USE Bank; SELECT acc_amount, acc_type FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?;';
+                let q2Values = [username, qResult[1][0]['acc_name']];
 
-            mysqlConn.query(q2, q2Values, (err2, q2Result) => {
-                if(err2) throw err2;
+                mysqlConn.query(q2, q2Values, (err2, q2Result) => {
+                    if(err2) throw err2;
 
-                let amount = Number(q2Result[1][0]['acc_amount']).toFixed(2);
-                let type = q2Result[1][0]['acc_type'];
+                    let amount = Number(q2Result[1][0]['acc_amount']).toFixed(2);
+                    let type = q2Result[1][0]['acc_type'];
 
-                res.render('viewaccounts', {accounts: accounts, type: type, amount: amount});
-            });
-        }else{
-            let errMessage = 'You do not have any accounts to view! Please create some!';
+                    res.render('viewaccounts', {accounts: accounts, type: type, amount: amount});
+                });
+            }else{
+                let errMessage = 'You do not have any accounts to view! Please create some!';
 
-            console.log('User attempted to view accounts without having any.');
+                console.log('User attempted to view accounts without having any.');
 
-            res.render('home', {errorMessage: errMessage, firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName});
-        }
-    });
+                res.render('home', {errorMessage: errMessage, firstName: req.session.activeUser.firstName, lastName: req.session.activeUser.lastName});
+            }
+        });
+    }else{
+        res.redirect('/');
+    }
 });
 
 /*
@@ -474,9 +490,13 @@ app.post('/viewAccounts', (req, res) => {
 toCreateAccount: send create account page.
 */
 app.get('/toCreateAccount', (req, res) => {
-    let errMessage = '';
+    if(authenticateUser(req.session)){
+        let errMessage = '';
 
-    res.render('createaccount', {errorMessage: errMessage});
+        res.render('createaccount', {errorMessage: errMessage});
+    }else{
+        res.redirect('/');
+    }
 });
 
 /*
