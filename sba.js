@@ -83,9 +83,8 @@ app.get('/', (req, res) => {
 Login POST Method
 */
 app.post('/login', (req, res) => {
-    // NOTE: Add filters on req.body variables
-    let username = req.body.username;
-    let password = req.body.password;
+    let username = xssFilters.inHTMLData(req.body.username);
+    let password = xssFilters.inHTMLData(req.body.password);
 
     let q = 'USE Bank; SELECT fName, lName FROM BankUsers WHERE `username`=? AND `password`=?';
     let qValues = [username, password];
@@ -125,8 +124,7 @@ app.get('/signup', (req, res) => {
 Sign Up POST Method
 */
 app.post('/signup', (req, res) => {
-    // NOTE: Add filter
-    let username = req.body.username;
+    let username = xssFilters.inHTMLData(req.body.username);
 
     let q = 'USE Bank; Select 1 FROM BankUsers WHERE `username`=?;'
     mysqlConn.query(q, [username], (err, qResult) => {
@@ -139,14 +137,13 @@ app.post('/signup', (req, res) => {
             res.render('signup', {errorMessage: errMessage});
         }else{
             let capFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-            // NOTE: Add filters
-            let password = req.body.password;
-            let firstName = capFirstLetter(req.body.firstName);
-            let lastName = capFirstLetter(req.body.lastName);
-            let address = req.body.address.toUpperCase();
-            let city = req.body.city.toUpperCase();
-            let state = req.body.state.toUpperCase();
-            let zip = req.body.zip;
+            let password = xssFilters.inHTMLData(req.body.password);
+            let firstName = xssFilters.inHTMLData(capFirstLetter(req.body.firstName));
+            let lastName = xssFilters.inHTMLData(capFirstLetter(req.body.lastName));
+            let address = xssFilters.inHTMLData(req.body.address.toUpperCase());
+            let city = xssFilters.inHTMLData(req.body.city.toUpperCase());
+            let state = xssFilters.inHTMLData(req.body.state.toUpperCase());
+            let zip = xssFilters.inHTMLData(req.body.zip);
 
             let q2 = 'USE Bank; INSERT INTO BankUsers VALUES(?,?,?,?,?,?,?,?)';
             let qValues = [username, password, firstName, lastName, address, city, state, zip];
@@ -200,8 +197,8 @@ Deposit POST Method
 */
 app.post('/deposit', (req, res) => {
     let username = req.session.activeUser.username;
-    let accountName = req.body.account;
-    let amount = Number(req.body.amount);
+    let accountName = xssFilters.inHTMLData(req.body.account);
+    let amount = Number(xssFilters.inHTMLData(req.body.amount));
 
     let q = 'USE Bank; SELECT acc_amount FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?';
     let qValues = [username, accountName];
@@ -263,8 +260,8 @@ Withdraw POST Method
 */
 app.post('/withdraw', (req, res) => {
     let username = req.session.activeUser.username;
-    let accountName = req.body.account;
-    let amount = Number(req.body.amount);
+    let accountName = xssFilters.inHTMLData(req.body.account);
+    let amount = Number(xssFilters.inHTMLData(req.body.amount));
 
     let q = 'USE Bank; SELECT acc_amount FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?';
     let qValues = [username, accountName];
@@ -345,9 +342,9 @@ Transfer POST Method
 */
 app.post('/transfer', (req, res) => {
     let username = req.session.activeUser.username;
-    let fromAccount = req.body.fromAccount;
-    let amount = Number(req.body.amount);
-    let toAccount = req.body.toAccount;
+    let fromAccount = xssFilters.inHTMLData(req.body.fromAccount);
+    let amount = Number(xssFilters.inHTMLData(req.body.amount));
+    let toAccount = xssFilters.inHTMLData(req.body.toAccount);
 
     let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?';
 
@@ -459,7 +456,7 @@ viewAccounts POST Method
 */
 app.post('/viewAccounts', (req, res) => {
     let username = req.session.activeUser.username;
-    let account = req.body.account;
+    let account = xssFilters.inHTMLData(req.body.account);
 
     let q = 'USE Bank; SELECT acc_name FROM UserAccounts WHERE `acc_username`=?;';
     mysqlConn.query(q, [username], (err, qResult) => {
@@ -504,7 +501,7 @@ createAccount POST Method
 */
 app.post('/createAccount', (req, res) => {
     let username = req.session.activeUser.username;
-    let accountName = req.body.accountName;
+    let accountName = xssFilters.inHTMLData(req.body.accountName);
 
     let q = 'USE Bank; SELECT 1 FROM UserAccounts WHERE `acc_username`=? AND `acc_name`=?;';
     let qValues = [username, accountName];
@@ -517,8 +514,8 @@ app.post('/createAccount', (req, res) => {
 
             res.render('createaccount', {errorMessage: errMessage});
         }else{
-            let accountType = req.body.accountType;
-            let accountAmount = Number(req.body.accountAmount).toFixed(2);
+            let accountType = xssFilters.inHTMLData(req.body.accountType);
+            let accountAmount = Number(xssFilters.inHTMLData(req.body.accountAmount)).toFixed(2);
 
             let q2 = 'USE Bank; INSERT INTO UserAccounts VALUES(?,?,?,?);';
             let q2Values = [accountName, accountType, accountAmount, username];
