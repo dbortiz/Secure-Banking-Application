@@ -7,17 +7,32 @@
         <h1>Sign Up!</h1>
         <%= errorMessage %>
         <form action='/signup' method='post'>
-            <input type='text' name='username' placeholder='Enter username' required />
-            <input type='password' name='password' placeholder='Enter password' required />
+            <label for='username'><h3>Username:</h3></label>
+            <input type='text' id='username' name='username' placeholder='Ex. JaneDoe' maxlength='20' required />
+            
+            <label for='password'><h3>Password:</h3></label>
+            <input type='password' id='password' name='password' placeholder='Ex. A1!b2@c3#' maxlength='30' required />
             <br></br>
-            <input type='text' name='firstName' placeholder='Enter first name' required />
-            <input type='text' name='lastName' placeholder='Enter last name' required />
+            
+            <label for='firstName'><h3>First Name:</h3></label>
+            <input type='text' id='firstName' name='firstName' placeholder='Ex. Jane' maxlength='20' required />
+
+            <label for='lastName'><h3>Last Name:</h3></label>
+            <input type='text' id='lastName' name='lastName' placeholder='Ex. Doe' maxlength='20' required />
             <br></br>
-            <input type='text' name='address' placeholder='Enter address' required />
-            <input type='text' name='city' placeholder='Enter city' required />
+            
+            <label for='address'><h3>Address:</h3></label>
+            <input type='text' id='address' name='address' placeholder='Ex. 12345 Jane Ave.' maxlength='30' required />
+
+            <label for='city'><h3>City:</h3></label>
+            <input type='text' id='city' name='city' placeholder='Ex. Anaheim' maxlength='30' required />
             <br></br>
-            <input type='text' name='state' placeholder='Enter state' required />
-            <input type='text' name='zip' placeholder='Enter zip code' required />
+
+            <label for='state'><h3>State:</h3></label>
+            <input type='text' id='state' name='state' placeholder='Ex. CA' maxlength='2' required />
+            
+            <label for='zip'><h3>Zip Code:</h3></label>
+            <input type='text' id='zip' name='zip' placeholder='Ex. 98210' maxlength='5' required />
             <br></br>
             <input type='submit' value='Sign Up' />
         </form>
